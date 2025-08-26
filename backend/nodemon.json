@@ -1,0 +1,14 @@
+{
+  "watch": ["."],
+  "ext": "js,json",
+  "ignore": [
+    "cache/**",
+    "../cache/**",
+    "../documentation/**",
+    "prisma/dev.db*",
+    "**/*.rst",
+    "**/*.md"
+  ]
+}
+
+

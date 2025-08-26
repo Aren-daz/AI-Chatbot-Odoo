@@ -1,0 +1,27 @@
+node_modules
+
+# Keep environment variables out of version control
+.env
+.env.local
+.env.production
+.env.backup
+
+# Prisma
+/generated/prisma
+prisma/*.db
+prisma/*.db-journal
+prisma/dev.db
+
+# Backups
+*.backup
+
+# Vercel
+.vercel
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db

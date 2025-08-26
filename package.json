@@ -1,0 +1,27 @@
+{
+  "name": "odoo-chatbot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chatbot intelligent spécialisé pour les questions Odoo v17",
+  "keywords": ["odoo", "chatbot", "ai", "schwing-stetter"],
+  "author": "Adam - Schwing Stetter Algérie",
+  "license": "MIT",
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "npm start --prefix backend",
+    "start:frontend": "npm run dev --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:backend": "npm run build --prefix backend",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

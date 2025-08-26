@@ -1,0 +1,171 @@
+// Odoo Chatbot Database Schema
+// Schéma de base de données pour l'application Odoo Chatbot d'Adam
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modèle Utilisateur
+model User {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  pseudonyme  String
+  passwordHash String?
+  isPremium   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  conversations Conversation[]
+  settings      UserSettings?
+  feedbacks     Feedback[]
+  sessions      Session[]
+  analytics     Analytics[]
+  
+  @@index([email])
+  @@index([createdAt])
+  @@map("users")
+}
+
+// Modèle Conversation
+model Conversation {
+  id        Int      @id @default(autoincrement())
+  title     String   @default("Nouvelle conversation")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  userId    Int
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  feedbacks Feedback[]
+  analytics Analytics[]
+  
+  @@index([userId, updatedAt])
+  @@index([createdAt])
+  @@map("conversations")
+}
+
+// Modèle Message
+model Message {
+  id        Int      @id @default(autoincrement())
+  text      String   @db.Text
+  isUser    Boolean
+  timestamp DateTime @default(now())
+  sources   Json?    // Stockage des sources de documentation
+  isError   Boolean  @default(false)
+  
+  // Relations
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  feedbacks      Feedback[]
+  
+  @@index([conversationId, timestamp])
+  @@index([conversationId, isUser])
+  @@map("messages")
+}
+
+// Modèle Paramètres Utilisateur
+model UserSettings {
+  id                    Int     @id @default(autoincrement())
+  darkMode              Boolean @default(false)
+  smoothAnimations      Boolean @default(true)
+  compactMode           Boolean @default(false)
+  soundNotifications    Boolean @default(false)
+  autoSaveConversations Boolean @default(true)
+  markdownFormatting    Boolean @default(true)
+  language              String  @default("fr") // fr, en, ar
+  
+  // Relations
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_settings")
+}
+
+// Modèle Feedback
+model Feedback {
+  id             Int      @id @default(autoincrement())
+  messageId      Int
+  conversationId Int
+  userId         Int
+  rating         Int      // 1-5
+  comment        String?
+  feedbackType   String   @default("general") // general, bug, feature, performance
+  suggestions    Json?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  
+  // Relations
+  message        Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([rating])
+  @@index([createdAt])
+  @@index([userId])
+  @@map("feedbacks")
+}
+
+// Modèle Session
+model Session {
+  id           String   @id @default(uuid())
+  userId       Int
+  token        String   @unique
+  ipAddress    String?
+  userAgent    String?
+  lastActivity DateTime @default(now())
+  expiresAt    DateTime
+  isActive     Boolean  @default(true)
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([token])
+  @@index([userId, isActive])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// Modèle Analytics
+model Analytics {
+  id              Int      @id @default(autoincrement())
+  eventType       String   // message_sent, feedback_given, search_performed, user_login, error
+  userId          Int?
+  conversationId  Int?
+  metadata        Json?
+  timestamp       DateTime @default(now())
+  
+  // Relations optionnelles
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  
+  @@index([eventType, timestamp])
+  @@index([userId, timestamp])
+  @@index([timestamp])
+  @@map("analytics_events")
+}
+
+// Modèle MetricsSnapshot
+model MetricsSnapshot {
+  id                 Int      @id @default(autoincrement())
+  date               DateTime @unique
+  totalUsers         Int
+  activeUsers        Int
+  totalConversations Int
+  totalMessages      Int
+  avgResponseTime    Float
+  avgRating          Float?
+  topQuestions       Json?
+  errorRate          Float
+  metadata           Json?
+  createdAt          DateTime @default(now())
+  
+  @@index([date])
+  @@map("metrics_snapshots")
+}
